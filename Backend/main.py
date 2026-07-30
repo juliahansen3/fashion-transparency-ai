@@ -145,21 +145,21 @@ def main():
     )
 
     summary_a = generate_summary(brand_a, model="perplexity", refresh = refresh_summaries)
-    #summary_b = generate_summary(brand_b, model="perplexity", refresh = refresh_summaries)
+    summary_b = generate_summary(brand_b, model="perplexity", refresh = refresh_summaries)
 
-    '''refresh_comparison = (
+    refresh_comparison = (
         input(
             "Regenerate existing comparison if exist? (y/n): "
         )
         .strip()
         .lower()
         == "y"
-    )'''
+    )
 
-    #comparison = generate_comparison(brand_a, brand_b, summary_a, summary_b, model="openai", refresh = refresh_comparison)
+    comparison = generate_comparison(brand_a, brand_b, summary_a, summary_b, model="openai", refresh = refresh_comparison)
 
-    #print("\nFinal Comparison:\n")
-    #print(comparison)
+    print("\nFinal Comparison:\n")
+    print(comparison)
 
 
 if __name__ == "__main__":
