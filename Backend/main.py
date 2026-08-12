@@ -12,6 +12,12 @@ MODEL_MODULES = {
     "perplexity": "models.perplexity_model",
 }
 
+# Default model for each generation step. Change these here — api.py reads
+# them directly instead of hardcoding its own defaults.
+SOURCES_MODEL = "perplexity"
+SUMMARY_MODEL = "claude"
+COMPARISON_MODEL = "openai"
+
 
 def load_prompt(file_name):
     '''Load a prompt from the prompts directory'''
@@ -31,13 +37,55 @@ def _generate_response(model, prompt):
     module = importlib.import_module(MODEL_MODULES[model])
     return module.generate_response(prompt)
 
+def generate_sources(brand_name, model=SOURCES_MODEL):
+    '''Generate a brand evidence set for a given brand name'''
+     # First check if cache exists
+    cache_file = Path(f"Outputs/evidence_sets/{brand_name.lower()}_{model}.json")
+    if cache_file.exists():
 
-def generate_summary(brand_name, model="openai", refresh = False):
+        print(
+            f"[Cache Hit] Loading cached sources for {brand_name}"
+        )
+
+        with open(cache_file, "r", encoding='utf-8') as f:
+            return json.load(f)["evidence_set"]
+
+    print(
+    f"[Cache Miss] Generating sources for {brand_name}"
+     )
+
+    # Load the retrieval prompt 
+    retreival_prompt = load_prompt("source_retrieval.md")
+
+    # Replace placeholder in prompt with brand name
+    retrieval_prompt = retreival_prompt.replace("{BRAND_NAME}", brand_name)
+    full_prompt = f"""
+        {retrieval_prompt}
+        """
+    
+    # Insert prompt into model
+    output = _generate_response(model, full_prompt)
+
+    # Save evidence set to file
+    #directory = os.path.dirname(os.path.abspath(__file__))
+    output_path = f"Outputs/evidence_sets/{brand_name.lower()}_{model}.json"
+    #os.path.normpath(os.path.join(directory, "..", "Outputs", "Summaries", f"{brand_name}.json"))
+
+    with open(output_path, "w", encoding="utf-8") as file:
+        json.dump({
+            "brand": brand_name,
+            "model": model,
+            "generated_at": datetime.now().isoformat(),
+            "evidence_set": output
+            }, file, indent=2, ensure_ascii=False)
+
+    return output
+
+def generate_summary(brand_name, model=SUMMARY_MODEL, refresh = False):
     '''Generate a brand summary for a given brand name'''
 
     # First check if cache exists
     cache_file = Path(f"Outputs/Summaries/{brand_name.lower()}_{model}.json")
-    #TODO add condition checking if refresh falls under 'y/n'. If not, ask to retype
     if cache_file.exists() and not refresh:
 
         print(
@@ -51,19 +99,24 @@ def generate_summary(brand_name, model="openai", refresh = False):
     f"[Cache Miss] Generating summary for {brand_name}"
      )
 
+    # Fetch evidence set for the brand 
+    evidence_set = generate_sources(brand_name)
+
     # Load the base prompt and schema
     base_prompt = load_prompt("brand_summary_prompt.md")
     schema = load_prompt("brand_summary_schema.md")
 
     # Replace placeholder in prompt with brand name
     base_prompt = base_prompt.replace("{BRAND_NAME}", brand_name)
-
     full_prompt = f"""
         {base_prompt}
-        
         SCHEMA:
         {schema}
+
+        EVIDENCE SET:
+        {evidence_set}
         """
+    
     # Insert prompt into model
     output = _generate_response(model, full_prompt)
 
@@ -83,13 +136,13 @@ def generate_summary(brand_name, model="openai", refresh = False):
     return output
 
 
-def generate_comparison(brand_a, brand_b, summary_a, summary_b, model="openai", refresh = False):
+def generate_comparison(brand_a, brand_b, summary_a, summary_b, model=COMPARISON_MODEL, refresh = False):
     '''Compare two brands based on their summaries'''
 
     # First check if comparison exists
     brands = sorted([brand_a.lower(), brand_b.lower()])
     cache_file = Path(f"Outputs/Comparisons/{brands[0]}_vs_{brands[1]}_{model}.json")
-    #TODO add condition checking if refresh falls under 'y/n'. If not, ask to retype
+    
     if cache_file.exists() and not refresh:
 
         print(
@@ -144,9 +197,10 @@ def main():
         == "y"
     )
 
-    summary_a = generate_summary(brand_a, model="perplexity", refresh = refresh_summaries)
-    summary_b = generate_summary(brand_b, model="perplexity", refresh = refresh_summaries)
+    summary_a = generate_summary(brand_a, model="claude", refresh = refresh_summaries)
+    #summary_b = generate_summary(brand_b, model="perplexity", refresh = refresh_summaries)
 
+    '''
     refresh_comparison = (
         input(
             "Regenerate existing comparison if exist? (y/n): "
@@ -155,11 +209,12 @@ def main():
         .lower()
         == "y"
     )
+    '''
 
-    comparison = generate_comparison(brand_a, brand_b, summary_a, summary_b, model="openai", refresh = refresh_comparison)
+    #comparison = generate_comparison(brand_a, brand_b, summary_a, summary_b, model="openai", refresh = refresh_comparison)
 
-    print("\nFinal Comparison:\n")
-    print(comparison)
+    #print("\nFinal Comparison:\n")
+    #print(comparison)
 
 
 if __name__ == "__main__":

@@ -49,12 +49,10 @@ const SUMMARY_HEADER_TO_KEY: Record<string, string> = {
   "environmental impact": "environment",
   "transparency & accountability": "transparency",
   "overall tradeoff summary": "tradeoff",
-  "source list (full)": "sources",
 };
 
 export interface ParsedSummary {
   sections: Record<string, string>;
-  sources: string[];
 }
 
 export function parseSummary(raw: string): ParsedSummary {
@@ -80,9 +78,7 @@ export function parseSummary(raw: string): ParsedSummary {
   }
   flush();
 
-  const sources = extractBullets(sections["sources"] ?? "");
-
-  return { sections, sources };
+  return { sections };
 }
 
 // ─── Comparison parsing ────────────────────────────────────────────────────

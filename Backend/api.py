@@ -15,7 +15,13 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from main import VALID_MODELS, generate_comparison, generate_summary
+from main import (
+    COMPARISON_MODEL,
+    SUMMARY_MODEL,
+    VALID_MODELS,
+    generate_comparison,
+    generate_summary,
+)
 
 app = FastAPI(title="Fashion Transparency AI API")
 
@@ -38,7 +44,7 @@ def health():
 @app.get("/api/summary/{brand}")
 def get_summary(
     brand: str,
-    model: str = Query("perplexity", enum=list(VALID_MODELS)),
+    model: str = Query(SUMMARY_MODEL, enum=list(VALID_MODELS)),
     refresh: bool = False,
 ):
     brand = brand.strip()
@@ -57,8 +63,8 @@ def get_summary(
 def get_comparison(
     brand_a: str = Query(..., alias="brandA"),
     brand_b: str = Query(..., alias="brandB"),
-    model: str = Query("openai", enum=list(VALID_MODELS)),
-    summary_model: str = Query("perplexity", alias="summaryModel", enum=list(VALID_MODELS)),
+    model: str = Query(COMPARISON_MODEL, enum=list(VALID_MODELS)),
+    summary_model: str = Query(SUMMARY_MODEL, alias="summaryModel", enum=list(VALID_MODELS)),
     refresh: bool = False,
 ):
     brand_a, brand_b = brand_a.strip(), brand_b.strip()

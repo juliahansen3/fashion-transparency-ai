@@ -8,6 +8,7 @@ import {
   type ParsedSummary,
   type ParsedComparison,
 } from "./lib/api";
+import { MarkdownLite } from "./lib/markdown";
 
 const BRANDS = [
   "Forever 21", "Gap", "H&M", "Mango", "Patagonia",
@@ -22,7 +23,7 @@ const PILLARS = [
 
 const SUMMARY_SECTIONS = [
   { key: "overview",      title: "Brand Overview",              defaultOpen: true  },
-  { key: "labor",         title: "Labor Practices",             defaultOpen: true  },
+  { key: "labor",         title: "Labor Practices",             defaultOpen: false },
   { key: "environment",   title: "Environmental Impact",        defaultOpen: false },
   { key: "transparency",  title: "Transparency & Accountability", defaultOpen: false },
   { key: "tradeoff",      title: "Overall Tradeoff Summary",    defaultOpen: false },
@@ -35,6 +36,21 @@ const COMPARISON_CATEGORIES = [
 ];
 
 // ─── Shared UI ────────────────────────────────────────────────────────────────
+
+function CollapseArrow({ open }: { open: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={`flex items-center justify-center w-9 h-9 rounded-full border-2 shrink-0 transition-all duration-200 ${
+        open
+          ? "bg-accent border-accent text-accent-foreground rotate-180"
+          : "border-border text-foreground hover:border-accent hover:text-accent"
+      }`}
+    >
+      <ChevronDown size={20} strokeWidth={2.5} />
+    </span>
+  );
+}
 
 function CollapsibleSection({
   title,
@@ -50,17 +66,13 @@ function CollapsibleSection({
     <div className="border-b border-border">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between py-5 text-left"
+        className="w-full flex items-center justify-between gap-4 py-5 text-left"
         aria-expanded={open}
       >
-        <span className="text-base text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+        <span className="text-lg text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
           {title}
         </span>
-        <ChevronDown
-          size={16}
-          strokeWidth={1.5}
-          className={`text-muted-foreground transition-transform duration-200 shrink-0 ml-4 ${open ? "rotate-180" : ""}`}
-        />
+        <CollapseArrow open={open} />
       </button>
       {open && <div className="pb-6">{children}</div>}
     </div>
@@ -83,7 +95,7 @@ function Footer({ width = "5xl" }: { width?: string }) {
     <footer className="border-t border-border shrink-0">
       <div className={`max-w-${width} mx-auto px-8 h-12 flex items-center justify-between`}>
         <span className="text-xs text-muted-foreground" style={{ fontFamily: "'DM Mono', monospace" }}>
-          © 2025 Unravel · Not affiliated with any brand
+          © 2026 Unravel · Not affiliated with any brand
         </span>
         <div className="flex items-center gap-6">
           {["Privacy", "Terms", "Contact"].map((item) => (
@@ -102,7 +114,7 @@ function Footer({ width = "5xl" }: { width?: string }) {
 function Placeholder({ label }: { label: string }) {
   return (
     <div className="rounded-sm border border-dashed border-border bg-muted/30 px-4 py-3">
-      <p className="text-xs text-muted-foreground leading-relaxed italic">{label}</p>
+      <p className="text-sm text-muted-foreground leading-relaxed italic">{label}</p>
     </div>
   );
 }
@@ -110,7 +122,7 @@ function Placeholder({ label }: { label: string }) {
 function Finding({ text }: { text: string }) {
   return (
     <div className="rounded-sm border border-border bg-card px-4 py-3">
-      <p className="text-xs text-foreground leading-relaxed">{text}</p>
+      <p className="text-sm text-foreground leading-relaxed">{text}</p>
     </div>
   );
 }
@@ -138,17 +150,13 @@ function CollapsibleCard({ title, children }: { title: string; children: React.R
     <div className="border border-border rounded-sm overflow-hidden">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-6 py-4 bg-secondary/30 border-b border-border text-left"
+        className="w-full flex items-center justify-between gap-4 px-6 py-4 bg-secondary/30 border-b border-border text-left"
         aria-expanded={open}
       >
-        <h2 className="text-base text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+        <h2 className="text-lg text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
           {title}
         </h2>
-        <ChevronDown
-          size={15}
-          strokeWidth={1.5}
-          className={`text-muted-foreground transition-transform duration-200 shrink-0 ${open ? "rotate-180" : ""}`}
-        />
+        <CollapseArrow open={open} />
       </button>
       {open && children}
     </div>
@@ -416,7 +424,7 @@ function ComparisonPage({
                 <div className="border-t border-border pt-8 space-y-6">
                   <div>
                     <h2
-                      className="text-xl text-foreground mb-4"
+                      className="text-2xl text-foreground mb-4"
                       style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 400 }}
                     >
                       Key Tradeoffs
@@ -437,7 +445,7 @@ function ComparisonPage({
                   {/* What This Means in Practice */}
                   <div>
                     <h2
-                      className="text-xl text-foreground mb-4"
+                      className="text-2xl text-foreground mb-4"
                       style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 400 }}
                     >
                       What This Means in Practice
@@ -454,9 +462,9 @@ function ComparisonPage({
                         <div key={prompt} className="flex items-start gap-3">
                           <span className="text-muted-foreground mt-0.5 shrink-0">•</span>
                           <div className="space-y-1.5 flex-1">
-                            <p className="text-sm text-foreground">{prompt}</p>
+                            <p className="text-base text-foreground">{prompt}</p>
                             {guidance ? (
-                              <p className="text-sm text-muted-foreground leading-relaxed">{guidance}</p>
+                              <p className="text-base text-muted-foreground leading-relaxed">{guidance}</p>
                             ) : (
                               <Placeholder label="Guidance will appear here." />
                             )}
@@ -470,17 +478,13 @@ function ComparisonPage({
                   <div className="border-t border-border pt-6">
                     <button
                       onClick={() => setSourcesOpen((o) => !o)}
-                      className="w-full flex items-center justify-between py-4 text-left"
+                      className="w-full flex items-center justify-between gap-4 py-4 text-left"
                       aria-expanded={sourcesOpen}
                     >
-                      <span className="text-base text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                      <span className="text-lg text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
                         Sources
                       </span>
-                      <ChevronDown
-                        size={16}
-                        strokeWidth={1.5}
-                        className={`text-muted-foreground transition-transform duration-200 ${sourcesOpen ? "rotate-180" : ""}`}
-                      />
+                      <CollapseArrow open={sourcesOpen} />
                     </button>
                     {sourcesOpen && (
                       <div className="pb-6 space-y-3">
@@ -519,8 +523,6 @@ function BrandSummaryPage({
   onBack: () => void;
   onCompare: () => void;
 }) {
-  const [sourcesOpen, setSourcesOpen] = useState(false);
-
   const [parsed, setParsed] = useState<ParsedSummary | null>(null);
   const [status, setStatus] = useState<"loading" | "idle" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
@@ -583,7 +585,7 @@ function BrandSummaryPage({
             return (
               <CollapsibleSection key={section.key} title={section.title} defaultOpen={section.defaultOpen}>
                 {content ? (
-                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{content}</p>
+                  <MarkdownLite text={content} />
                 ) : (
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     Summary content for {section.title} will appear here.
@@ -592,28 +594,6 @@ function BrandSummaryPage({
               </CollapsibleSection>
             );
           })}
-
-          <div className="border-b border-border">
-            <button
-              onClick={() => setSourcesOpen((o) => !o)}
-              className="w-full flex items-center justify-between py-5 text-left"
-              aria-expanded={sourcesOpen}
-            >
-              <span className="text-base text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>Sources</span>
-              <ChevronDown size={16} strokeWidth={1.5} className={`text-muted-foreground transition-transform duration-200 ${sourcesOpen ? "rotate-180" : ""}`} />
-            </button>
-            {sourcesOpen && (
-              <div className="pb-6 space-y-2">
-                {parsed && parsed.sources.length > 0 ? (
-                  parsed.sources.map((s, i) => (
-                    <p key={i} className="text-sm text-muted-foreground break-all">{s}</p>
-                  ))
-                ) : (
-                  <p className="text-sm text-muted-foreground">Referenced sources will appear here.</p>
-                )}
-              </div>
-            )}
-          </div>
         </div>
 
         <div className="mt-10">
@@ -726,36 +706,36 @@ export default function App() {
               Unravel
             </span>
           </div>
-          <nav className="flex items-center gap-8">
-            {["Brand Summaries", "Brand Comparisons"].map((item) => (
-              <a key={item} href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-150" style={{ fontFamily: "'DM Mono', monospace", letterSpacing: "0.03em" }}>
-                {item}
-              </a>
-            ))}
-          </nav>
+          
         </div>
       </header>
 
       <main className="flex-1 flex flex-col">
         <section className="max-w-5xl mx-auto px-8 pt-24 pb-16 w-full">
-          <div className="max-w-2xl">
+          <div className="max-w-2xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 text-xs text-accent mb-8 border border-accent/30 px-3 py-1.5 rounded-sm" style={{ fontFamily: "'DM Mono', monospace" }}>
               <span className="w-1.5 h-1.5 rounded-full bg-accent" />
               AI-POWERED RESEARCH TOOL
             </div>
             <h1 className="text-5xl font-normal text-foreground leading-[1.15] mb-5" style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 400 }}>
-              Understand{" "}<br />every brand according to your values.
+              Understand every brand according to your values.
             </h1>
-            <p className="text-base text-muted-foreground leading-relaxed max-w-lg">
+            <p className="text-base text-muted-foreground leading-relaxed max-w-lg mx-auto">
               Evidence-based summaries of labor practices, environmental impact, and supply chain transparency — so you can shop quickly with clarity.
             </p>
           </div>
         </section>
 
         <section className="max-w-5xl mx-auto px-8 pb-16 w-full">
-          <div className="grid grid-cols-[1fr_1px_220px] gap-12">
-            {/* Search */}
-            <div>
+          <div className="max-w-xl mx-auto group/search">
+            {/* Hover trigger */}
+            <div className="w-fit mx-auto flex items-center gap-2 text-sm text-accent border border-accent/30 px-4 py-2.5 rounded-sm cursor-default" style={{ fontFamily: "'DM Mono', monospace", letterSpacing: "0.02em" }}>
+              <Search size={14} strokeWidth={1.5} />
+              Start Searching
+            </div>
+
+            {/* Search (hidden until hovered/focused) */}
+            <div className="max-h-0 opacity-0 overflow-hidden group-hover/search:max-h-[32rem] group-hover/search:overflow-visible group-hover/search:opacity-100 group-hover/search:mt-6 group-focus-within/search:max-h-[32rem] group-focus-within/search:overflow-visible group-focus-within/search:opacity-100 group-focus-within/search:mt-6 transition-all duration-300 ease-out">
               <label className="block text-xs mb-2 text-muted-foreground" style={{ fontFamily: "'DM Mono', monospace", letterSpacing: "0.04em" }} htmlFor="brand-search">
                 SEARCH A BRAND
               </label>
@@ -850,28 +830,6 @@ export default function App() {
                 )}
               </div>
             </div>
-
-            <div className="bg-border" />
-
-            {/* Brand list */}
-            <div>
-              <p className="text-xs text-muted-foreground mb-4" style={{ fontFamily: "'DM Mono', monospace", letterSpacing: "0.04em" }}>
-                BROWSE ALL BRANDS
-              </p>
-              <ul>
-                {BRANDS.map((brand) => (
-                  <li key={brand}>
-                    <button
-                      onClick={() => goToBrand(brand)}
-                      className="w-full flex items-center justify-between py-2.5 text-sm text-foreground hover:text-accent border-b border-border/50 last:border-0 transition-colors duration-150 group text-left"
-                    >
-                      {brand}
-                      <ArrowRight size={12} strokeWidth={1.5} className="text-muted-foreground/0 group-hover:text-accent transition-colors duration-150" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
           </div>
         </section>
 
@@ -891,7 +849,7 @@ export default function App() {
 
         <section className="max-w-5xl mx-auto px-8 pb-16 w-full">
           <div className="flex items-center gap-10 flex-wrap">
-            {[{ value: "10+", label: "Brands indexed" }, { value: "Q2 2025", label: "Last data refresh" }, { value: "Open", label: "Methodology" }].map(({ value, label }) => (
+            {[{ value: "10+", label: "Brands indexed" }, { value: "Q2 2026", label: "Last data refresh" }, { value: "Open", label: "Methodology" }].map(({ value, label }) => (
               <div key={label} className="flex items-baseline gap-2">
                 <span className="text-lg text-foreground" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{value}</span>
                 <span className="text-xs text-muted-foreground" style={{ fontFamily: "'DM Mono', monospace" }}>{label}</span>
